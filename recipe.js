@@ -41,9 +41,40 @@ app.controller('myCtrl', function($scope) {
     }
 });
 
-function doIt() { //outputs recipe data
+
+var sums = ["a","a","a","a","a"];
+function description(id1,i){
+	$.ajax({
+    url: 'https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/'+id1+'/summary', // The URL to the API. You can get this in the API page of the API you intend to consume
+    type: 'GET', // The HTTP Method, can be GET POST PUT DELETE etc
+    data: {
+		id:id1
+	}, // Additional parameters here
+    dataType: 'json',
+    success: function(data) { 
+		console.dir(data);
+		sum = data["summary"];
+		var text = document.createElement('p');
+		text.innerHTML = sum;	
+		sums.splice(i, 0, text);
+		summaries(i);
+	},
+    error: function(err) { alert(err); },
+    beforeSend: function(xhr) {
+		xhr.setRequestHeader("X-Mashape-Authorization", "XptQA26zqnmsh6mMAtakOfUkCHt4p1OWihUjsn47fsHxNZSBD8"); // Enter here your Mashape key
+    }
+});
 	
-	var output = $.ajax({
+}
+
+//var ids = [];
+function doIt() { //outputs recipe data
+	document.getElementById("showrec").innerHTML = "- R E C I P E S -";
+	document.getElementById("dashes").innerHTML = "- - -";
+	//ids=[];
+	//i = 0;
+	sums = ["a","a","a","a","a"];
+	$.ajax({
 	url: 'https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/findByIngredients', // The URL to the API. You can get this by clicking on "Show CURL example" from an API profile
 	type: 'GET', // The HTTP Method, can be GET POST PUT DELETE etc
 	data: {
@@ -53,38 +84,76 @@ function doIt() { //outputs recipe data
 	}, // Additional parameters here
 	dataType: 'json',
 	success: function(data) {
-		//
 		//Change data.source to data.something , where something is whichever part of the object you want returned.
 		//To see the whole object you can output it to your browser console using:
 		console.log(data);
 		document.getElementById("output").innerHTML=""; //clears results from last search
 		var i;
+		//var ids = [];
 		for (i=0;i<data.length;i++){ //i is the i-th object in the data array that we get from the API
 			var id = data[i]["id"];
 			var para = document.createElement("p"); //creates a paragraph element
-			var a = document.createElement("a");
-			var node = document.createTextNode(data[i]["title"]); //creates text element
-			a.innerHTML = data[i]["title"];
-			a.href = data[i]["image"].replace("/recipeImages/", "/").replace(".jpg", "");
-			a.target = "_blank";
-		
-			para.appendChild(a); //puts the text elem in the paragraph elem	
+			var a = document.createElement("a"); 
 			var img = document.createElement('img'); //creates an image element
+			var div = document.createElement('div'); //output is an empty div where we put all the recipe title/info
+			var innerdiv = document.createElement('div');
+			var paradiv = document.createElement('div');
+			var b = document.createElement('br');
+			
+			a.innerHTML = data[i]["title"]; //makes the title a link
+			a.href = data[i]["image"].replace("/recipeImages/", "/").replace(".jpg", "");
+			a.target = "_blank";	
+			para.appendChild(a); //puts the text elem in the paragraph elem	
+			//ids.push(id);
+			div.className = "divs";
+			para.className = "paras";
+			paradiv.className= "col-sm-7";
+			paradiv.id = "para"+i; 
+			paradiv.appendChild(para);
+
 			img.src = data[i]["image"]; //sets image
 			img.id = "image";
-			var div = document.createElement('div'); //output is an empty div where we put all the recipe title/info
-			div.className="divs";
-			var innerdiv = document.createElement('div');
+			
 			innerdiv.id = 'recipe'+i;
-			innerdiv.className = 'crop thumbnail';
+			innerdiv.className = 'crop thumbnail col-sm-5';
 			innerdiv.appendChild(img); //appends image element into div
-			div.appendChild(para); //appends the paragraph element into the div
+			
+			div.appendChild(paradiv);
 			div.appendChild(innerdiv);
+			description(id,i);
+			
 			document.getElementById("output").appendChild(div);
-		}},
+			document.getElementById("output").appendChild(b);
+			}
+			
+			document.getElementById('portfolio').scrollIntoView();
+		
+		},
 	error: function(err) { alert(err); },
 	beforeSend: function(xhr) {
-	xhr.setRequestHeader("X-Mashape-Authorization", "XptQA26zqnmsh6mMAtakOfUkCHt4p1OWihUjsn47fsHxNZSBD8"); // Enter here your Mashape key
+		xhr.setRequestHeader("X-Mashape-Authorization", "XptQA26zqnmsh6mMAtakOfUkCHt4p1OWihUjsn47fsHxNZSBD8"); // Enter here your Mashape key
 	}
 });
 }
+function ifdone(){
+	var x;
+	var bool=true;
+	for (x=0;x<5;x++){
+		if (sums[x]=="a"){
+			bool=false;
+		}
+	}
+	return bool;
+}
+function summaries(i){
+	document.getElementById("para"+i).appendChild(sums[i]);
+	if (ifdone()){
+		var anchors = document.querySelectorAll('a[href^="/"]');
+		Array.prototype.forEach.call(anchors, function (element, index) {
+    	element.href = "http://spoonacular.com" + element.href.substring(6);
+    	element.target = "_blank";
+});
+	}
+
+}
+
